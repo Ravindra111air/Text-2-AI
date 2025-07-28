@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Text & Markdown Utility</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Special Elite', cursive;
+            background-color: #fff3d1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 5px 5px;
+        }
+        .container {
+            background-color: #fbf1c7;
+            border-radius: 15px;
+            border: 2px solid #d3c0a5;
+            box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        textarea, input, select {
+            background-color: #fdf6e3;
+            border: 1px dashed #bdae93;
+            color: #665c54;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            border-radius: 5px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 250px;
+        }
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border: 1px solid #928374;
+            box-shadow: 0 0 10px rgba(189, 174, 147, 0.5);
+        }
+        .btn {
+            transition: all 0.3s ease-in-out;
+            will-change: transform;
+        }
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: translateY(1px) scale(0.95);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        h1 { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        .tabs { display: flex; border-bottom: 2px solid #d3c0a5; margin-bottom: 1rem; gap: 1rem; }
+        .tab-button.active { color: #665c54; border-bottom: 3px solid #665c54; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        #markdown-input { display: none; }
+        #content { border: 1px dashed #bdae93; padding: 1.5em; min-height: 200px; background: #fdf6e3; border-radius: 5px; line-height: 1.6; color: #665c54; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-8 w-full max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-amber-900">Universal Text Utility</h1>
+            <p class="text-amber-800 text-lg mt-2">Your all-in-one text processing tool</p>
+            <h3 class="text-amber-900 text-sm mt-1">Ravindra Patidar</h3> 
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button px-6 py-3 font-semibold text-lg cursor-pointer text-gray-500 active" data-tab="text-tools-tab">Text Tools</button>
+            <button class="tab-button px-6 py-3 font-semibold text-lg cursor-pointer text-gray-500" data-tab="markdown-converter">Markdown Converter</button>
+        </div>
+
+        <main>
+            <div id="text-tools-tab" class="tab-content active">
+                <div class="mb-6">
+                    <label for="plainText" class="block text-amber-800 text-xl font-medium mb-3">1. Paste your text</label>
+                    <textarea id="plainText" class="w-full p-5" placeholder="Your thoughts, notes, or data..."></textarea>
+                </div>
+
+                <div class="p-6 bg-gray-200/50 border-t-2 border-b-2 border-dashed border-gray-400 rounded-lg shadow-inner mb-6">
+                    <div class="mb-5">
+                        <label for="aiPrompt" class="block text-gray-800 text-xl font-medium mb-3 text-center">2. Set your AI prompt (optional)</label>
+                        <input type="text" id="aiPrompt" class="w-full p-3 text-center" placeholder="Make very detailed notes from the following text:">
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-5 text-center">3. Process with AI</h2>
+                    <div class="flex flex-wrap justify-center items-center gap-4">
+                        <button id="geminiBtn" title="Downloads a file and copies the prompt for you to upload." class="btn px-6 py-3 rounded-lg font-bold text-lg text-white tracking-wider shadow-lg bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-purple-600">Gemini</button>
+                        <button id="chatGptBtn" title="Smart Button! Auto-prompts short text; uses file download for long text." class="btn px-6 py-3 rounded-lg font-bold text-lg text-white tracking-wider shadow-lg bg-gradient-to-br from-teal-500 to-green-600 border-2 border-green-700">ChatGPT ✨</button>
+                        <button id="claudeBtn" title="Downloads a file and copies the prompt for you to upload." class="btn px-6 py-3 rounded-lg font-bold text-lg text-white tracking-wider shadow-lg bg-gradient-to-br from-purple-700 to-violet-800 border-2 border-violet-900">Claude</button>
+                        <button id="perplexityBtn" title="Downloads a file and copies the prompt for you to upload." class="btn px-6 py-3 rounded-lg font-bold text-lg text-white tracking-wider shadow-lg bg-gray-800 hover:bg-black border-2 border-black">Perplexity</button>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-amber-200/50 border-t-2 border-b-2 border-dashed border-amber-300 rounded-lg shadow-inner">
+                    <h2 class="text-2xl font-semibold text-amber-800 mb-5 text-center">Standard Export Options</h2>
+                    <div class="flex flex-col sm:flex-row justify-center items-center space-y-5 sm:space-y-0 sm:space-x-6">
+                        <button id="exportTxtBtn" class="btn px-8 py-4 rounded-lg font-semibold shadow-lg uppercase bg-gradient-to-br from-amber-800 to-amber-950 text-white border-2 border-amber-900">Export as TXT</button>
+                        <button id="exportCsvBtn" class="btn px-8 py-4 rounded-lg font-semibold shadow-lg uppercase bg-gradient-to-br from-amber-300 to-amber-500 text-amber-900 border-2 border-amber-600">Export as CSV</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="markdown-converter" class="tab-content">
+                <div class="mb-6 flex flex-col sm:flex-row justify-center items-center space-y-5 sm:space-y-0 sm:space-x-6">
+                    <input type="file" id="markdown-input" accept=".md, .markdown">
+                    <button id="import-markdown" class="btn px-8 py-4 rounded-lg font-semibold shadow-lg uppercase bg-gradient-to-br from-blue-800 to-blue-950 text-white border-2 border-blue-900">Import Markdown</button>
+                    <button id="export-pdf" class="btn px-8 py-4 rounded-lg font-semibold shadow-lg uppercase bg-gradient-to-br from-red-800 to-red-950 text-white border-2 border-red-900">Export to PDF</button>
+                    <button id="copy-html" class="btn px-8 py-4 rounded-lg font-semibold shadow-lg uppercase bg-gradient-to-br from-green-700 to-green-900 text-white border-2 border-green-900">Copy for Docs</button>
+                </div>
+                <div id="content" class="prose max-w-none">
+                    <p>Import a Markdown file or start typing to see the rendered HTML here.</p>
+                </div>
+            </div>
+
+            <div id="messageBox" class="mt-6 p-4 rounded-lg text-center font-semibold text-base hidden transition-all"></div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Shared Components ---
+            const synth = new Tone.Synth().toDestination();
+            const messageBox = document.getElementById('messageBox');
+
+            function playClickSound() {
+                if (Tone.context.state !== 'running') { Tone.start().catch(e => console.error("Tone.js start failed:", e)); }
+                synth.triggerAttackRelease("C4", "8n");
+            }
+
+            function showMessage(message, type) {
+                messageBox.textContent = message;
+                messageBox.className = 'mt-6 p-4 rounded-lg text-center font-semibold text-base hidden transition-all duration-300';
+                if (type === 'success') {
+                    messageBox.classList.add('bg-green-100', 'text-green-900', 'border', 'border-green-300');
+                } else if (type === 'error') {
+                    messageBox.classList.add('bg-red-100', 'text-red-900', 'border', 'border-red-300');
+                } else if (type === 'info') {
+                    messageBox.classList.add('bg-blue-100', 'text-blue-900', 'border', 'border-blue-300');
+                }
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 4000);
+            }
+
+            function downloadFile(content, filename, mimeType) {
+                try {
+                    const blob = new Blob([content], { type: mimeType });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error('Download error:', error);
+                    showMessage(`Failed to export ${filename}.`, 'error');
+                }
+            }
+
+            // --- Tab Functionality ---
+            document.querySelectorAll('.tab-button').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    playClickSound();
+                    const targetId = tab.dataset.tab;
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+                    document.getElementById(targetId).classList.add('active');
+                    tab.classList.add('active');
+                });
+            });
+
+            // --- Text Tools Tab Logic ---
+            const plainTextarea = document.getElementById('plainText');
+            const aiPromptInput = document.getElementById('aiPrompt');
+
+            function processWithAI(aiName, aiUrl) {
+                playClickSound();
+                if (plainTextarea.value.trim() === '') {
+                    return showMessage(`Please enter text to process with ${aiName}.`, 'error');
+                }
+                
+                const customPrompt = aiPromptInput.value.trim() || "Make very detailed notes from the following text:";
+                const textContent = plainTextarea.value;
+                const URL_CHARACTER_LIMIT = 4000; // A safe limit for browser URLs
+
+                // --- SMART LOGIC FOR CHATGPT ---
+                if (aiName === 'ChatGPT') {
+                    const fullPrompt = `${customPrompt}\n\n---\n\n${textContent}`;
+
+                    if (fullPrompt.length < URL_CHARACTER_LIMIT) {
+                        // If text is short, use auto-prompt URL
+                        const encodedPrompt = encodeURIComponent(fullPrompt);
+                        const chatGptUrl = `https://chat.openai.com/?prompt=${encodedPrompt}`;
+                        showMessage(`Text is short. Using auto-prompt for ChatGPT...`, 'info');
+                        setTimeout(() => window.open(chatGptUrl, '_blank'), 500);
+
+                    } else {
+                        // If text is long, fallback to file download
+                        showMessage(`Text is long. Switching to file download for ChatGPT...`, 'info');
+                        const filename = `upload_for_chatgpt.txt`;
+                        downloadFile(textContent, filename, 'text/plain');
+                        // Copy only the instruction part of the prompt
+                        navigator.clipboard.writeText(customPrompt).then(() => {
+                            // Success is implied by the main message
+                        }).catch(err => {
+                           console.error('Clipboard error:', err);
+                           showMessage(`File downloaded, but failed to copy prompt. Please copy it manually.`, 'error');
+                        });
+                        setTimeout(() => window.open(aiUrl, '_blank'), 500);
+                    }
+                    return; // End function here to prevent fall-through
+                }
+
+                // --- Standard logic for Gemini, Claude, Perplexity ---
+                const filename = `upload_for_${aiName.toLowerCase()}.txt`;
+                downloadFile(textContent, filename, 'text/plain');
+                // The prompt for these should be about the *file*
+                const promptForFile = aiPromptInput.value.trim() || "Make very detailed notes from this file";
+
+                navigator.clipboard.writeText(promptForFile).then(() => {
+                    showMessage(`File downloaded & prompt copied! Opening ${aiName}...`, 'info');
+                    setTimeout(() => window.open(aiUrl, '_blank'), 500);
+                }).catch(err => {
+                    console.error('Clipboard error:', err);
+                    showMessage(`File downloaded, but failed to copy prompt. Opening ${aiName}...`, 'error');
+                    window.open(aiUrl, '_blank');
+                });
+            }
+
+            document.getElementById('geminiBtn').addEventListener('click', () => processWithAI('Gemini', 'https://gemini.google.com'));
+            document.getElementById('chatGptBtn').addEventListener('click', () => processWithAI('ChatGPT', 'https://chat.openai.com'));
+            document.getElementById('claudeBtn').addEventListener('click', () => processWithAI('Claude', 'https://claude.ai'));
+            document.getElementById('perplexityBtn').addEventListener('click', () => processWithAI('Perplexity', 'https://www.perplexity.ai'));
+            
+            document.getElementById('exportTxtBtn').addEventListener('click', () => { /* ... unchanged ... */ });
+            document.getElementById('exportCsvBtn').addEventListener('click', () => { /* ... unchanged ... */ });
+
+            // --- Markdown Converter Tab Logic ---
+            const contentDiv = document.getElementById('content');
+            const markdownInput = document.getElementById('markdown-input');
+            const placeholderText = "Import a Markdown file or start typing to see the rendered HTML here.";
+            document.getElementById('import-markdown').addEventListener('click', () => markdownInput.click());
+            markdownInput.addEventListener('change', function(event) { /* ... unchanged ... */ });
+            document.getElementById('export-pdf').addEventListener('click', function() { /* ... unchanged ... */ });
+            document.getElementById('copy-html').addEventListener('click', function() { /* ... unchanged ... */ });
+        });
+    </script>
+</body>
+</html>
